@@ -43,4 +43,6 @@ Không sử dụng header nhận diện của ChatGPT. Máy chủ xác nhận ph
 - Dữ liệu hiện tại trên ChatGPT không nằm trong source. Bản mới tạo database và định danh tài khoản riêng; việc chuyển dữ liệu và link cũ cần một bước migration riêng.
 
 ## Phạm vi sản phẩm
-6 mẫu, chỉnh thông tin lễ cưới, mỗi tài khoản một thiệp, tạo link riêng từng khách, đổi tên/thời hạn, thu hồi link, xuất CSV. Ảnh là minh họa. Chưa có tải ảnh cá nhân, RSVP, ứng dụng native hay thanh toán.
+14 mẫu, chỉnh thông tin lễ cưới, mỗi tài khoản một thiệp, tạo link riêng từng khách, đổi tên/thời hạn, thu hồi link, xuất CSV. Hỗ trợ thiệp dọc 2:3 và ngang 3:2; tải ảnh cá nhân với ba kiểu tan vào nền, phủ nền và khung ảnh, chỉnh độ hiện và vị trí ảnh. Chưa có RSVP, ứng dụng native hay thanh toán.
+
+Ảnh JPG/PNG/WebP tối đa 20 MB được xử lý trong trình duyệt thành JPEG tối đa 1600 px và 1 MB trước khi tải. Bản này lưu ảnh trong D1, tối đa 20 ảnh mỗi tài khoản; không cần thêm R2. Thư viện ảnh yêu cầu đăng nhập; URL ảnh dùng ID ngẫu nhiên và có thể xem bởi người nhận thiệp. Khi cập nhật bản cũ cần áp dụng migration `0001_curvy_crystal.sql` (`pnpm run db:local` ở local; pipeline deploy áp dụng migration production). Thông tin khổ, ảnh và hòa nền được lưu cùng thiệp; thiệp cũ vẫn mở được.
