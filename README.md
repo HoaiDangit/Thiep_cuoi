@@ -1,48 +1,23 @@
-# Lời Hẹn — bản chạy độc lập
+# Lời Hẹn — thiệp cưới online
 
-Ứng dụng thiệp cưới online tiếng Việt. React/Vinext + Cloudflare Workers + D1; đăng nhập email/mật khẩu qua Supabase Auth. Khách mở link thiệp công khai mà không cần tài khoản.
+Ứng dụng tiếng Việt dùng React/Vinext, Cloudflare Workers và D1. Đăng nhập quản trị bằng mật khẩu; khách nhận link không cần đăng nhập. Bản này không cần Supabase.
 
-**Bắt đầu:** đọc `DEPLOY_GUIDE_VI.md`. Thư mục này là thư mục cần đưa lên repository GitHub.
+## Chức năng
+- 14 mẫu thiệp, khổ dọc 2:3 hoặc ngang 3:2.
+- Tải ảnh JPG/PNG/WebP, hòa ảnh với nền, chỉnh độ hiện và vị trí; thư viện tối đa 20 ảnh. Ảnh được xử lý thành JPEG tối đa 1600 px và 1 MB trước khi lưu D1.
+- Lưu thông tin thiệp, tạo link riêng từng khách và tự lưu danh sách trong D1.
+- Mỗi link mới mở trong đúng 40 ngày kể từ lúc tạo. Đổi tên không thay link hoặc gia hạn. Sau hết hạn, link đóng và thông tin vẫn giữ trong danh sách để tra cứu.
+- Xem, sao chép link, tải lại danh sách, thu hồi, tìm khách và xuất CSV; tối đa 400 khách mỗi thiệp, nhập tối đa 200 tên mỗi lần.
+- Thông tin thiệp đã lưu được hiển thị khi khách mở link; các link hiện có cập nhật theo nội dung thiệp mới lưu.
+- Chống tạo trùng khi thử lại cùng yêu cầu bị lỗi mạng.
 
-## Nội dung
-- `app/`: giao diện chọn mẫu, sửa thông tin, quản lý khách, trang thiệp và API.
-- `lib/`: dữ liệu mẫu, kiểm tra quyền sở hữu, đăng nhập và tiện ích.
-- `components/`, `hooks/`, `vendor/`: các thành phần UI và giấy phép đi kèm.
-- `public/`: ảnh minh họa và favicon.
-- `db/`, `drizzle/`: schema và lịch sử migration D1.
-- `wrangler.jsonc`: cấu hình Cloudflare, cần thay `database_id` bằng ID thật.
-- `.github/workflows/`: kiểm tra source và tự triển khai khi push lên `main`.
-- `.dev.vars.example`: mẫu cấu hình đăng nhập local, không chứa khóa thật.
-- `tests/`: kiểm tra các ranh giới bảo mật và phản hồi của lớp đăng nhập.
+## Chạy local
+Node >=22.13, pnpm 11.25.0. Cài dependencies bằng `pnpm install --frozen-lockfile`. Sao chép `.dev.vars.example` thành `.dev.vars` và đặt ADMIN_PASSWORD ngẫu nhiên từ 16 ký tự. Chạy `pnpm run db:local`, `pnpm run dev`, mở /login.
 
-## Các lệnh chính
-```sh
-pnpm install --frozen-lockfile
-pnpm run check
-pnpm run test
-pnpm run db:local
-pnpm run dev
-pnpm run build
-pnpm run deploy
-```
-Node.js 24 và pnpm 11.25.0. Lệnh deploy kiểm tra TypeScript, chạy tests, build, áp dụng các migration chưa chạy trên D1 rồi triển khai Worker. Lệnh sẽ dừng nếu chưa cấu hình ID database thật.
+## Deploy
+Đọc [DEPLOY_GUIDE_VI.md](DEPLOY_GUIDE_VI.md). Worker: thiep-cuoi; database: thiep-cuoi-db. Session quản trị có hiệu lực 7 ngày, lưu token đã băm trong D1; HttpOnly, SameSite=Lax và Secure trên HTTPS. Đổi ADMIN_PASSWORD vô hiệu hóa phiên cũ. Có giới hạn 5 lần thử đăng nhập mỗi 15 phút theo IP.
 
-## Đăng nhập
-Không sử dụng header nhận diện của ChatGPT. Máy chủ xác nhận phiên với Supabase `/user`; access và refresh token lưu bằng cookie HttpOnly, SameSite=Lax, Secure trên HTTPS. Cookie access chỉ tồn tại trong thời hạn phiên; phiên được làm mới qua endpoint cùng origin. Không có mật khẩu, API token Cloudflare hoặc dữ liệu khách thật trong gói source.
+Source không chứa mật khẩu thật hoặc dữ liệu khách. Không push .dev.vars, .wrangler, node_modules hay dist. original-sites/ trong repo là bản tham khảo và không thuộc build chính. Chưa có RSVP, thanh toán hoặc quản lý nhiều tài khoản.
 
-Đăng ký email cần xác nhận theo thiết lập của dự án Supabase. Nếu bật CAPTCHA trong Supabase, cần bổ sung giao diện và chuyển token CAPTCHA trước khi bật; phiên bản này chưa có CAPTCHA. Khi mở đăng ký cho người dùng ngoài nhóm dự án, cần cấu hình SMTP riêng theo tài liệu Supabase. Chưa có giao diện quên mật khẩu; quản trị viên có thể quản lý tài khoản qua Supabase trong bản đầu.
-
-## Kiểm tra và giới hạn
-- TypeScript, build và 5 tests auth-core đã đạt.
-- Cài đặt lockfile đã được kiểm tra ở chế độ frozen/offline với các phụ thuộc có sẵn.
-- Migration D1 đã áp dụng được trên database local.
-- Smoke test HTTP cho các trang và ranh giới quyền truy cập đã đạt; xem `VALIDATION.md`.
-- Chưa kiểm tra đăng nhập với tài khoản Supabase thật, GitHub Actions trên repository thật hoặc triển khai lên Cloudflare của người dùng: cần cấu hình các tài khoản và quyền tương ứng.
-- Chưa kiểm thử giao diện trên thiết bị thật.
-- Giới hạn Free của Workers bao gồm thời gian CPU; cần đo trên tài khoản thật. Việc build thành công không đảm bảo mọi lưu lượng đều nằm trong hạn mức miễn phí.
-- Dữ liệu hiện tại trên ChatGPT không nằm trong source. Bản mới tạo database và định danh tài khoản riêng; việc chuyển dữ liệu và link cũ cần một bước migration riêng.
-
-## Phạm vi sản phẩm
-14 mẫu, chỉnh thông tin lễ cưới, mỗi tài khoản một thiệp, tạo link riêng từng khách, đổi tên/thời hạn, thu hồi link, xuất CSV. Hỗ trợ thiệp dọc 2:3 và ngang 3:2; tải ảnh cá nhân với ba kiểu tan vào nền, phủ nền và khung ảnh, chỉnh độ hiện và vị trí ảnh. Chưa có RSVP, ứng dụng native hay thanh toán.
-
-Ảnh JPG/PNG/WebP tối đa 20 MB được xử lý trong trình duyệt thành JPEG tối đa 1600 px và 1 MB trước khi tải. Bản này lưu ảnh trong D1, tối đa 20 ảnh mỗi tài khoản; không cần thêm R2. Thư viện ảnh yêu cầu đăng nhập; URL ảnh dùng ID ngẫu nhiên và có thể xem bởi người nhận thiệp. Khi cập nhật bản cũ cần áp dụng migration `0001_curvy_crystal.sql` (`pnpm run db:local` ở local; pipeline deploy áp dụng migration production). Thông tin khổ, ảnh và hòa nền được lưu cùng thiệp; thiệp cũ vẫn mở được.
+## Kiểm tra
+`pnpm run check`, `pnpm run test`, `pnpm run build`. Xem VALIDATION.md để biết kiểm tra và giới hạn thực tế.

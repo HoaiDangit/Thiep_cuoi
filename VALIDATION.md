@@ -1,5 +1,14 @@
 # Kết quả kiểm tra bản xuất độc lập
 
+## Link 40 ngày và quản trị D1 — 2026-10-12
+
+- TypeScript và 10 unit tests đạt. Thời hạn link mới được máy chủ tính bằng thời điểm tạo + 40 × 24 giờ; sửa tên không gia hạn link.
+- Worker local đã chạy luồng đăng nhập quản trị → tải ảnh → lưu thiệp → tạo hai khách → thử lại cùng requestId không tạo trùng → tải lại danh sách từ D1 → mở trang thiệp cá nhân hóa → sửa tên → thu hồi → đăng xuất.
+- Phiên quản trị lưu token băm trong D1, có hạn 7 ngày. API đăng ký bị đóng. Các chức năng quản trị không phụ thuộc Supabase.
+- D1 thiep-cuoi-db riêng đã tạo tại APAC. Có migration bảng admin_sessions và admin_login_attempts; cấu hình database thật trong wrangler.jsonc.
+- Repo hiện chưa có secrets CLOUDFLARE_API_TOKEN và CLOUDFLARE_ACCOUNT_ID. Tự động deploy từ GitHub Actions chỉ được bật sau khi cung cấp hai secrets; Cloudflare Builds API hiện từ chối quyền truy cập 403.
+- Chưa có trình duyệt kết nối để kiểm tra bố cục trực quan trên desktop/mobile.
+
 ## Cập nhật ảnh và khổ thiệp — 2026-10-09
 
 - Thêm 8 mẫu hòa nền, tổng cộng 14 mẫu; hỗ trợ ngang/dọc, tan vào nền/phủ nền/khung ảnh, vị trí và độ hiện của ảnh.

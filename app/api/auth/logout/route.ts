@@ -1,4 +1,4 @@
 import { cookies } from 'next/headers';
-import { authConfig,clearSession,authError,ACCESS_COOKIE } from '@/lib/auth';
-import { authCall,verifyOrigin } from '@/lib/auth-core';
-export async function POST(r:Request){try{verifyOrigin(r);const token=(await cookies()).get(ACCESS_COOKIE)?.value;if(token){try{await authCall(authConfig(),'/logout?scope=local',{},token);}catch{}}return clearSession();}catch(e){return authError(e);}}
+import { revokeSession,clearSession,authError,ACCESS_COOKIE,REFRESH_COOKIE } from '@/lib/auth';
+import { verifyOrigin } from '@/lib/auth-core';
+export async function POST(r:Request){try{verifyOrigin(r);const jar=await cookies();await revokeSession(jar.get(ACCESS_COOKIE)?.value);await revokeSession(jar.get(REFRESH_COOKIE)?.value);return clearSession();}catch(e){return authError(e);}}

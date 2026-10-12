@@ -21,5 +21,5 @@ export function validateWedding(x:any):Wedding{
  for(const key of ['photoOpacity','photoX','photoY'] as const){const value=x[key]??(key==='photoOpacity'?70:50);if(typeof value!=='number'||!Number.isFinite(value)||value<0||value>100)throw new Error('Điều chỉnh ảnh không hợp lệ.');result[key]=value;}
  return result;
 }
-export function fail(e:unknown){console.error(e);return e instanceof Error&&e.message==='AUTH'?json({error:'Vui lòng đăng nhập để lưu thiệp.'},401):json({error:e instanceof Error?e.message:'Có lỗi xảy ra. Vui lòng thử lại.'},400);}
+export function fail(e:unknown){if(!(e instanceof Error&&e.message==='AUTH'))console.error(e);return e instanceof Error&&e.message==='AUTH'?json({error:'Vui lòng đăng nhập để lưu thiệp.'},401):json({error:e instanceof Error?e.message:'Có lỗi xảy ra. Vui lòng thử lại.'},400);}
 export async function ownWedding(user:string){return db().prepare('SELECT * FROM weddings WHERE owner = ?').bind(user).first<{id:string;data:string}>();}
