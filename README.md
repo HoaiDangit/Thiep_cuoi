@@ -1,5 +1,7 @@
 # Lời Hẹn — thiệp cưới online
 
+Website: https://thiep-cuoi.thiep-hy-danglnh3264.workers.dev · Quản trị: /login. Xem DEPLOYMENT.md để biết kết quả kiểm tra và trạng thái tự động deploy.
+
 Ứng dụng tiếng Việt dùng React/Vinext, Cloudflare Workers và D1. Đăng nhập quản trị bằng mật khẩu; khách nhận link không cần đăng nhập. Bản này không cần Supabase.
 
 ## Chức năng

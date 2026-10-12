@@ -2,6 +2,8 @@
 
 ## Link 40 ngày và quản trị D1 — 2026-10-12
 
+- Đã deploy Worker HTTPS thật; kiểm tra toàn bộ luồng, kể cả chặn phiên sau đăng xuất, đạt. Dữ liệu giả đã được dọn và xác nhận database production sạch. Xem DEPLOYMENT.md. Trình giả lập local có lúc trì hoãn truy cập cookie đã thu hồi; lỗi này không lặp lại trên website HTTPS thật.
+
 - TypeScript và 10 unit tests đạt. Thời hạn link mới được máy chủ tính bằng thời điểm tạo + 40 × 24 giờ; sửa tên không gia hạn link.
 - Worker local đã chạy luồng đăng nhập quản trị → tải ảnh → lưu thiệp → tạo hai khách → thử lại cùng requestId không tạo trùng → tải lại danh sách từ D1 → mở trang thiệp cá nhân hóa → sửa tên → thu hồi → đăng xuất.
 - Phiên quản trị lưu token băm trong D1, có hạn 7 ngày. API đăng ký bị đóng. Các chức năng quản trị không phụ thuộc Supabase.
