@@ -30,4 +30,6 @@ Sau khi áp dụng migration 0004, quản trị có thể thiết lập mật kh
 
 Link hết hạn sau 24 giờ. Chỉ token băm được lưu trong D1; không đưa link vào GitHub hoặc gửi công khai. Nếu đã có mật khẩu, dùng /account để đổi; chỉ dùng `--reset` khi chủ sở hữu yêu cầu khôi phục quyền truy cập. Mỗi lần cấp link mới sẽ vô hiệu hóa link thiết lập cũ.
 
-Mật khẩu được lưu dưới dạng PBKDF2-SHA256 với salt ngẫu nhiên và 600.000 vòng. Sau khi đặt mật khẩu riêng, secret ADMIN_PASSWORD cũ không còn dùng để đăng nhập; dữ liệu thiệp và khách vẫn thuộc quản trị viên admin. Đặt hoặc đổi mật khẩu thu hồi các phiên cũ và cấp phiên mới. Đăng ký công khai vẫn bị chặn. Google OAuth chưa được cấu hình.
+Mật khẩu được lưu dưới dạng PBKDF2-SHA256 với salt ngẫu nhiên, 100.000 vòng (giới hạn của Workers production) và HMAC-SHA256 dùng secret ADMIN_PASSWORD làm pepper độc lập. Sau khi đặt mật khẩu riêng, secret ADMIN_PASSWORD cũ không còn dùng để đăng nhập; dữ liệu thiệp và khách vẫn thuộc quản trị viên admin. Đặt hoặc đổi mật khẩu thu hồi các phiên cũ và cấp phiên mới. Đăng ký công khai vẫn bị chặn. Google OAuth chưa được cấu hình.
+
+Không thay hoặc xóa secret ADMIN_PASSWORD sau khi đã đặt mật khẩu cá nhân: secret này bảo vệ hash trong database. Nếu cần xoay secret, phải cấp link khôi phục để chủ sở hữu đặt lại mật khẩu. Endpoint /api/auth/setup/check kiểm tra link và chạy thử băm/xác minh trên Workers mà không lưu mật khẩu hoặc tiêu thụ link.

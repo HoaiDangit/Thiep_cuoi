@@ -6,6 +6,7 @@ import { digest,passwordMatches,validAdminToken,ADMIN_SESSION_MS } from './admin
 import { makePasswordRecord,verifyPersonalPassword,validNewPassword,type PasswordRecord } from './password';
 export const ACCESS_COOKIE='loi_hen_access',REFRESH_COOKIE='loi_hen_refresh';
 function authDb(){if(!env.DB)throw new AuthProblem('Chưa cấu hình database.',503);return env.DB;}
+function passwordPepper(){if(!env.ADMIN_PASSWORD||env.ADMIN_PASSWORD.length<16)throw new AuthProblem('Máy chủ chưa cấu hình khóa bảo vệ mật khẩu.',503);return env.ADMIN_PASSWORD;}
 async function personalCredential(){return authDb().prepare("SELECT salt,password_hash,iterations,updated FROM admin_credentials WHERE id='admin'").first<PasswordRecord>();}
 async function recordTag(record:PasswordRecord){return digest('personal:'+JSON.stringify([record.salt,record.password_hash,record.iterations,record.updated]));}
 async function currentCredential(){
@@ -14,7 +15,7 @@ async function currentCredential(){
  if(!env.ADMIN_PASSWORD||env.ADMIN_PASSWORD.length<16)throw new AuthProblem('Chưa thiết lập quản trị. Vui lòng mở link thiết lập riêng.',503);
  return {record:null,tag:await digest(env.ADMIN_PASSWORD),legacy:env.ADMIN_PASSWORD};
 }
-async function matches(password:string,credential:Awaited<ReturnType<typeof currentCredential>>){return credential.record?verifyPersonalPassword(password,credential.record):passwordMatches(password,credential.legacy!);}
+async function matches(password:string,credential:Awaited<ReturnType<typeof currentCredential>>){return credential.record?verifyPersonalPassword(password,credential.record,passwordPepper()):passwordMatches(password,credential.legacy!);}
 function passwordInput(password:unknown):asserts password is string{if(typeof password!=='string'||!password.length||password.length>256)throw new AuthProblem('Vui lòng nhập mật khẩu quản trị.');}
 async function authAttempt(r:Request,purpose:string){
  const now=Date.now(),key=await digest(purpose+':'+(r.headers.get('cf-connecting-ip')||'local'));
@@ -40,7 +41,7 @@ export async function loginAdmin(r:Request,password:unknown){
  return issueSession(r,credential.tag,key);
 }
 async function storePersonalPassword(r:Request,password:string,condition:string,conditionArgs:(string|number)[],attemptKey:string){
- const record=await makePasswordRecord(password),{salt,password_hash,iterations,updated}=record;
+ const record=await makePasswordRecord(password,passwordPepper()),{salt,password_hash,iterations,updated}=record;
  const token=crypto.randomUUID().replaceAll('-','')+crypto.randomUUID().replaceAll('-',''),expires=Date.now()+ADMIN_SESSION_MS;
  const tag=await recordTag(record);
  const fresh="EXISTS (SELECT 1 FROM admin_credentials WHERE id='admin' AND password_hash=?)";
@@ -53,6 +54,16 @@ async function storePersonalPassword(r:Request,password:string,condition:string,
  ]);
  if(result[0].meta.changes!==1)throw new AuthProblem('Link thiết lập đã được dùng hoặc thông tin đăng nhập đã thay đổi. Vui lòng thử lại.',409);
  return setSession(r,token,expires);
+}
+export async function checkAdminSetup(r:Request,input:any){
+ if(!input||!validAdminToken(input.token))throw new AuthProblem('Cần link thiết lập riêng còn hiệu lực.',403);
+ const valid=await authDb().prepare('SELECT expires FROM admin_setup_tokens WHERE token_hash=? AND expires>?').bind(await digest(input.token),Date.now()).first();
+ if(!valid)throw new AuthProblem('Link thiết lập đã hết hạn hoặc đã được sử dụng.',403);
+ const pepper=passwordPepper(),sample='Setup readiness check';
+ const record=await makePasswordRecord(sample,pepper);
+ if(!await verifyPersonalPassword(sample,record,pepper))throw new AuthProblem('Máy chủ chưa sẵn sàng để thiết lập mật khẩu.',503);
+ await authDb().prepare('DELETE FROM admin_login_attempts WHERE key=?').bind(await digest('setup:'+(r.headers.get('cf-connecting-ip')||'local'))).run();
+ return {ready:true};
 }
 export async function setupAdmin(r:Request,input:any){
  if(!input||!validAdminToken(input.token))throw new AuthProblem('Cần link thiết lập riêng còn hiệu lực.',403);
@@ -73,4 +84,4 @@ export async function changeAdminPassword(r:Request,input:any){
 export function setSession(r:Request,token:string,expires:number){const res=NextResponse.json({signedIn:true},{headers:{'Cache-Control':'private, no-store'}});const secure=new URL(r.url).protocol==='https:',maxAge=Math.max(0,Math.floor((expires-Date.now())/1000));res.cookies.set(ACCESS_COOKIE,token,{httpOnly:true,secure,sameSite:'lax',path:'/',maxAge});res.cookies.set(REFRESH_COOKIE,token,{httpOnly:true,secure,sameSite:'lax',path:'/api/auth',maxAge});return res;}
 export async function revokeSession(token:unknown){if(validAdminToken(token))await authDb().prepare('DELETE FROM admin_sessions WHERE token_hash=?').bind(await digest(token)).run();}
 export function clearSession(){const res=NextResponse.json({signedIn:false},{headers:{'Cache-Control':'private, no-store'}});for(const [name,path]of [[ACCESS_COOKIE,'/'],[REFRESH_COOKIE,'/api/auth']])res.cookies.set(name,'',{httpOnly:true,sameSite:'lax',path,maxAge:0});return res;}
-export function authError(e:unknown){const known=e instanceof AuthProblem;return NextResponse.json({error:known?e.message:'Chưa thực hiện được đăng nhập. Vui lòng thử lại.'},{status:known?e.status:503,headers:{'Cache-Control':'private, no-store'}});}
+export function authError(e:unknown,action:'login'|'setup'|'password'='login'){const known=e instanceof AuthProblem;if(!known)console.error('Authentication server failure',{category:e instanceof Error&&/pbkdf|scrypt|crypto/i.test(e.message)?'password-hashing':e instanceof Error&&/D1|database|SQL/i.test(e.message)?'database':'unknown'});return NextResponse.json({error:known?e.message:action==='setup'?'Chưa thiết lập được mật khẩu do lỗi máy chủ. Vui lòng thử lại.':action==='password'?'Chưa đổi được mật khẩu do lỗi máy chủ. Vui lòng thử lại.':'Chưa thực hiện được đăng nhập. Vui lòng thử lại.'},{status:known?e.status:503,headers:{'Cache-Control':'private, no-store'}});}
