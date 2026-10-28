@@ -22,3 +22,12 @@ Có thể thay GitHub Actions bằng Cloudflare Workers Builds: Worker → Setti
 Migrations chỉ thay schema; source GitHub không chứa dữ liệu production. D1 lưu weddings, guests, photos, admin_sessions và admin_login_attempts. Lưu danh sách khách trong database giúp tải lại, đổi thiết bị vẫn thấy cùng link. Sau 40 ngày link ngừng mở; không tự xóa bản ghi. Worker thiep-hy và database thiep-hy-db là dự án riêng.
 
 Ảnh có URL ngẫu nhiên để khách mở thiệp xem được; chỉ quản trị mới liệt kê hoặc tải ảnh lên. Không cần R2 hoặc Supabase. Có thể export D1 qua Cloudflare Dashboard để sao lưu.
+
+## Mật khẩu quản trị cá nhân
+Sau khi áp dụng migration 0004, quản trị có thể thiết lập mật khẩu riêng tại /setup bằng link dùng một lần. Tạo link bằng phiên Wrangler đã xác thực:
+
+`node scripts/create-admin-setup.mjs --url https://thiep-cuoi.thiep-hy-danglnh3264.workers.dev`
+
+Link hết hạn sau 24 giờ. Chỉ token băm được lưu trong D1; không đưa link vào GitHub hoặc gửi công khai. Nếu đã có mật khẩu, dùng /account để đổi; chỉ dùng `--reset` khi chủ sở hữu yêu cầu khôi phục quyền truy cập. Mỗi lần cấp link mới sẽ vô hiệu hóa link thiết lập cũ.
+
+Mật khẩu được lưu dưới dạng PBKDF2-SHA256 với salt ngẫu nhiên và 600.000 vòng. Sau khi đặt mật khẩu riêng, secret ADMIN_PASSWORD cũ không còn dùng để đăng nhập; dữ liệu thiệp và khách vẫn thuộc quản trị viên admin. Đặt hoặc đổi mật khẩu thu hồi các phiên cũ và cấp phiên mới. Đăng ký công khai vẫn bị chặn. Google OAuth chưa được cấu hình.

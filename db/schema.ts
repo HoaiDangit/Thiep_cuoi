@@ -8,3 +8,6 @@ export const weddings = sqliteTable('weddings', {
 export const guests = sqliteTable('guests', {
  token:text('token').primaryKey(), weddingId:text('wedding_id').notNull().references(()=>weddings.id), name:text('name').notNull(), venueId:integer('venue_id').notNull().default(1), expires:integer('expires').notNull(), revoked:integer('revoked').notNull().default(0), created:integer('created').notNull()
 },t=>[index('idx_guests_wedding').on(t.weddingId)]);
+
+export const adminCredentials=sqliteTable('admin_credentials',{id:text('id').primaryKey(),salt:text('salt').notNull(),passwordHash:text('password_hash').notNull(),iterations:integer('iterations').notNull(),updated:integer('updated').notNull()});
+export const adminSetupTokens=sqliteTable('admin_setup_tokens',{tokenHash:text('token_hash').primaryKey(),expires:integer('expires').notNull()});
