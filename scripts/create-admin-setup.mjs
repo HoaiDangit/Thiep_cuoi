@@ -13,4 +13,4 @@ const existing=query("SELECT count(*) AS n FROM admin_credentials WHERE id='admi
 if(existing[0]?.results[0]?.n&&!reset)throw new Error('A personal password already exists. Use the signed-in change-password page, or --reset only for an owner-authorized recovery.');
 const token=randomBytes(32).toString('hex'),hash=createHash('sha256').update(token).digest('hex'),expires=Date.now()+24*60*60*1000;
 query(`DELETE FROM admin_setup_tokens; INSERT INTO admin_setup_tokens (token_hash,expires) VALUES ('${hash}',${expires});`);
-console.log(new URL('/setup#token='+token,base).href);
+console.log(new URL('/weddings/setup#token='+token,base).href);

@@ -1,10 +1,11 @@
+import { appPath } from './paths';
 import { env } from 'cloudflare:workers';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { AuthProblem } from './auth-core';
 import { digest,passwordMatches,validAdminToken,ADMIN_SESSION_MS } from './admin-core';
 import { makePasswordRecord,verifyPersonalPassword,validNewPassword,type PasswordRecord } from './password';
-export const ACCESS_COOKIE='loi_hen_access',REFRESH_COOKIE='loi_hen_refresh';
+export const ACCESS_COOKIE='loi_hen_weddings_access',REFRESH_COOKIE='loi_hen_weddings_refresh';
 function authDb(){if(!env.DB)throw new AuthProblem('Chưa cấu hình database.',503);return env.DB;}
 function passwordPepper(){if(!env.ADMIN_PASSWORD||env.ADMIN_PASSWORD.length<16)throw new AuthProblem('Máy chủ chưa cấu hình khóa bảo vệ mật khẩu.',503);return env.ADMIN_PASSWORD;}
 async function personalCredential(){return authDb().prepare("SELECT salt,password_hash,iterations,updated FROM admin_credentials WHERE id='admin'").first<PasswordRecord>();}
@@ -81,7 +82,7 @@ export async function changeAdminPassword(r:Request,input:any){
  if(!await matches(input.currentPassword,credential))throw new AuthProblem('Mật khẩu hiện tại chưa đúng.',401);
  return credential.record?storePersonalPassword(r,input.password,"EXISTS (SELECT 1 FROM admin_credentials WHERE id='admin' AND password_hash=? AND salt=?)",[credential.record.password_hash,credential.record.salt],key):storePersonalPassword(r,input.password,"NOT EXISTS (SELECT 1 FROM admin_credentials WHERE id='admin')",[],key);
 }
-export function setSession(r:Request,token:string,expires:number){const res=NextResponse.json({signedIn:true},{headers:{'Cache-Control':'private, no-store'}});const secure=new URL(r.url).protocol==='https:',maxAge=Math.max(0,Math.floor((expires-Date.now())/1000));res.cookies.set(ACCESS_COOKIE,token,{httpOnly:true,secure,sameSite:'lax',path:'/',maxAge});res.cookies.set(REFRESH_COOKIE,token,{httpOnly:true,secure,sameSite:'lax',path:'/api/auth',maxAge});return res;}
+export function setSession(r:Request,token:string,expires:number){const res=NextResponse.json({signedIn:true},{headers:{'Cache-Control':'private, no-store'}});const secure=new URL(r.url).protocol==='https:',maxAge=Math.max(0,Math.floor((expires-Date.now())/1000));res.cookies.set(ACCESS_COOKIE,token,{httpOnly:true,secure,sameSite:'lax',path:appPath('/'),maxAge});res.cookies.set(REFRESH_COOKIE,token,{httpOnly:true,secure,sameSite:'lax',path:appPath('/api/auth'),maxAge});return res;}
 export async function revokeSession(token:unknown){if(validAdminToken(token))await authDb().prepare('DELETE FROM admin_sessions WHERE token_hash=?').bind(await digest(token)).run();}
-export function clearSession(){const res=NextResponse.json({signedIn:false},{headers:{'Cache-Control':'private, no-store'}});for(const [name,path]of [[ACCESS_COOKIE,'/'],[REFRESH_COOKIE,'/api/auth']])res.cookies.set(name,'',{httpOnly:true,sameSite:'lax',path,maxAge:0});return res;}
+export function clearSession(){const res=NextResponse.json({signedIn:false},{headers:{'Cache-Control':'private, no-store'}});for(const [name,path]of [[ACCESS_COOKIE,appPath('/')],[REFRESH_COOKIE,appPath('/api/auth')]])res.cookies.set(name,'',{httpOnly:true,sameSite:'lax',path,maxAge:0});return res;}
 export function authError(e:unknown,action:'login'|'setup'|'password'='login'){const known=e instanceof AuthProblem;if(!known)console.error('Authentication server failure',{category:e instanceof Error&&/pbkdf|scrypt|crypto/i.test(e.message)?'password-hashing':e instanceof Error&&/D1|database|SQL/i.test(e.message)?'database':'unknown'});return NextResponse.json({error:known?e.message:action==='setup'?'Chưa thiết lập được mật khẩu do lỗi máy chủ. Vui lòng thử lại.':action==='password'?'Chưa đổi được mật khẩu do lỗi máy chủ. Vui lòng thử lại.':'Chưa thực hiện được đăng nhập. Vui lòng thử lại.'},{status:known?e.status:503,headers:{'Cache-Control':'private, no-store'}});}
