@@ -1,10 +1,10 @@
 import { pbkdf2,randomBytes,timingSafeEqual } from 'node:crypto';
 export const PASSWORD_ITERATIONS=600000;
 export type PasswordRecord={salt:string;password_hash:string;iterations:number;updated:number};
-export function validNewPassword(value:unknown):value is string{return typeof value==='string'&&value.length>=16&&value.length<=256;}
+export function validNewPassword(value:unknown):value is string{return typeof value==='string'&&value.length>=8&&value.length<=256;}
 function derive(password:string,salt:string,iterations:number):Promise<Buffer>{return new Promise((resolve,reject)=>pbkdf2(password,Buffer.from(salt,'hex'),iterations,32,'sha256',(error,key)=>error?reject(error):resolve(key)));}
 export async function makePasswordRecord(password:string):Promise<PasswordRecord>{
- if(!validNewPassword(password))throw new Error('Mật khẩu cần từ 16 đến 256 ký tự.');
+ if(!validNewPassword(password))throw new Error('Mật khẩu cần từ 8 đến 256 ký tự.');
  const salt=randomBytes(32).toString('hex');
  return {salt,password_hash:(await derive(password,salt,PASSWORD_ITERATIONS)).toString('hex'),iterations:PASSWORD_ITERATIONS,updated:Date.now()};
 }

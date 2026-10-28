@@ -56,7 +56,7 @@ async function storePersonalPassword(r:Request,password:string,condition:string,
 }
 export async function setupAdmin(r:Request,input:any){
  if(!input||!validAdminToken(input.token))throw new AuthProblem('Cần link thiết lập riêng còn hiệu lực.',403);
- if(!validNewPassword(input.password))throw new AuthProblem('Mật khẩu cá nhân cần từ 16 đến 256 ký tự.');
+ if(!validNewPassword(input.password))throw new AuthProblem('Mật khẩu cá nhân cần từ 8 đến 256 ký tự.');
  const key=await authAttempt(r,'setup'),tokenHash=await digest(input.token);
  const valid=await authDb().prepare('SELECT expires FROM admin_setup_tokens WHERE token_hash=? AND expires>?').bind(tokenHash,Date.now()).first();
  if(!valid)throw new AuthProblem('Link thiết lập đã hết hạn hoặc đã được sử dụng.',403);
@@ -65,7 +65,7 @@ export async function setupAdmin(r:Request,input:any){
 export async function changeAdminPassword(r:Request,input:any){
  if(!await getAuthUser())throw new AuthProblem('Vui lòng đăng nhập trước khi đổi mật khẩu.',401);
  passwordInput(input?.currentPassword);
- if(!validNewPassword(input.password))throw new AuthProblem('Mật khẩu mới cần từ 16 đến 256 ký tự.');
+ if(!validNewPassword(input.password))throw new AuthProblem('Mật khẩu mới cần từ 8 đến 256 ký tự.');
  const key=await authAttempt(r,'change-password'),credential=await currentCredential();
  if(!await matches(input.currentPassword,credential))throw new AuthProblem('Mật khẩu hiện tại chưa đúng.',401);
  return credential.record?storePersonalPassword(r,input.password,"EXISTS (SELECT 1 FROM admin_credentials WHERE id='admin' AND password_hash=? AND salt=?)",[credential.record.password_hash,credential.record.salt],key):storePersonalPassword(r,input.password,"NOT EXISTS (SELECT 1 FROM admin_credentials WHERE id='admin')",[],key);
