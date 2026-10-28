@@ -1,0 +1,30 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import ts from 'typescript';
+import { readFileSync } from 'node:fs';
+const transpile=path=>ts.transpileModule(readFileSync(new URL(path,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
+const asUrl=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
+const v=await import(asUrl(transpile('../lib/venues.ts')));
+const q=await import(asUrl(transpile('../lib/venue-qr.ts').replace("'qrcode'",JSON.stringify(import.meta.resolve('qrcode'))).replace("'./maps'",JSON.stringify(asUrl(transpile('../lib/maps.ts'))))));
+const wedding={venue:'Tiệc nhà trai',address:'Hà Nội',mapUrl:'https://maps.app.goo.gl/venue1',secondVenue:{venue:'Tiệc nhà gái',address:'TP. Hồ Chí Minh',mapUrl:'https://maps.app.goo.gl/venue2'},defaultVenue:2};
+test('each guest retains the assigned venue when the wedding default changes',()=>{
+ assert.equal(v.weddingAtVenue(wedding,1).venue,'Tiệc nhà trai');
+ assert.equal(v.weddingAtVenue(wedding,2).address,'TP. Hồ Chí Minh');
+ assert.equal(v.weddingAtVenue({...wedding,defaultVenue:1},2).mapUrl,wedding.secondVenue.mapUrl);
+ assert.equal(v.weddingAtVenue(wedding).venue,'Tiệc nhà gái');
+ assert.equal(v.weddingAtVenue({...wedding,secondVenue:undefined,defaultVenue:undefined}).venue,'Tiệc nhà trai');
+ assert.equal(v.venueAvailable({...wedding,secondVenue:undefined},2),false);
+ for(const id of [0,3,'2',null])assert.equal(v.validVenueId(id),false);
+});
+test('saved venue QR images are reused and only changed destinations regenerate',async()=>{
+ const first=await q.prepareVenueQrs(wedding);
+ assert.match(first.mapQr.image,/^data:image\/svg\+xml;base64,/);
+ assert.notEqual(first.mapQr.image,first.secondVenue.mapQr.image);
+ const second=await q.prepareVenueQrs({...wedding,defaultVenue:1},first);
+ assert.equal(second.mapQr,first.mapQr);
+ assert.equal(second.secondVenue.mapQr,first.secondVenue.mapQr);
+ const changed=await q.prepareVenueQrs({...wedding,secondVenue:{...wedding.secondVenue,mapUrl:'https://maps.app.goo.gl/newVenue'}},first);
+ assert.equal(changed.mapQr,first.mapQr);
+ assert.notEqual(changed.secondVenue.mapQr.image,first.secondVenue.mapQr.image);
+ assert.equal(v.weddingAtVenue(changed,2).mapQr.url,'https://maps.app.goo.gl/newVenue');
+});

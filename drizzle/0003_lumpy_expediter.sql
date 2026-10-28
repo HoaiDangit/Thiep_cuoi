@@ -1,0 +1,1 @@
+ALTER TABLE `guests` ADD `venue_id` integer DEFAULT 1 NOT NULL;

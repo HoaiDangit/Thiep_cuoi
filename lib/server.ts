@@ -1,3 +1,4 @@
+import { validVenueId } from './venues';
 import { validMapUrl } from './maps';
 import { env } from 'cloudflare:workers';
 import { getAuthUser } from '@/lib/auth';
@@ -22,6 +23,10 @@ export function validateWedding(x:any):Wedding{
  for(const key of ['photoOpacity','photoX','photoY'] as const){const value=x[key]??(key==='photoOpacity'?70:50);if(typeof value!=='number'||!Number.isFinite(value)||value<0||value>100)throw new Error('Điều chỉnh ảnh không hợp lệ.');result[key]=value;}
  if(x.mapUrl!==undefined&&(typeof x.mapUrl!=='string'||(x.mapUrl.trim()&&!validMapUrl(x.mapUrl.trim()))))throw new Error('Link bản đồ phải là đường dẫn HTTPS hợp lệ, tối đa 2048 ký tự.');
  result.mapUrl=x.mapUrl?.trim()??'';
+ if(x.secondVenue!==undefined){const v=x.secondVenue;if(!v||typeof v.venue!=='string'||!v.venue.trim()||v.venue.trim().length>200||typeof v.address!=='string'||!v.address.trim()||v.address.trim().length>400)throw new Error('Vui lòng điền tên và địa chỉ của địa điểm 2.');if(v.mapUrl!==undefined&&(typeof v.mapUrl!=='string'||(v.mapUrl.trim()&&!validMapUrl(v.mapUrl.trim()))))throw new Error('Link bản đồ địa điểm 2 phải là HTTPS hợp lệ, tối đa 2048 ký tự.');result.secondVenue={venue:v.venue.trim(),address:v.address.trim(),mapUrl:v.mapUrl?.trim()??''};}
+ if(x.defaultVenue!==undefined&&!validVenueId(x.defaultVenue))throw new Error('Địa điểm mặc định không hợp lệ.');
+ result.defaultVenue=x.defaultVenue??1;
+ if(result.defaultVenue===2&&!result.secondVenue)throw new Error('Hãy lưu địa điểm 2 trước khi chọn.');
  return result;
 }
 export function fail(e:unknown){if(!(e instanceof Error&&e.message==='AUTH'))console.error(e);return e instanceof Error&&e.message==='AUTH'?json({error:'Vui lòng đăng nhập để lưu thiệp.'},401):json({error:e instanceof Error?e.message:'Có lỗi xảy ra. Vui lòng thử lại.'},400);}

@@ -22,6 +22,13 @@
       "when": 1791768362163,
       "tag": "0002_condemned_phantom_reporter",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1793156727330,
+      "tag": "0003_lumpy_expediter",
+      "breakpoints": true
     }
   ]
 }
