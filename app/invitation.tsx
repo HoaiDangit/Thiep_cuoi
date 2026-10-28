@@ -12,7 +12,7 @@ export default function Invitation({wedding:w,guest='Bạn và người thương
  <div className="fine-line"/><p className="invite-label">ĐẾN DỰ TIỆC CƯỚI CỦA</p>
  <h2>{w.groom||'Chú rể'}<em>&</em>{w.bride||'Cô dâu'}</h2>
  <div className="invite-date"><span>{w.time||'18:00'}</span><strong>{prettyDate(w.date)}</strong><span>VIỆT NAM</span></div>
- <p className="invite-venue">{w.venue||'Địa điểm tổ chức'}</p>{!compact&&<><p className="invite-address">{w.address}</p><VenueQr wedding={w}/><p className="invite-message">{w.message}</p></>}
+ <p className="invite-venue">{w.venue||'Địa điểm tổ chức'}</p>{!compact&&<><VenueQr wedding={w}/><p className="invite-message">{w.message}</p></>}
  <div className="invite-bottom">Sự hiện diện của bạn là niềm hạnh phúc của chúng mình.</div></div>
  </article>;
 }
