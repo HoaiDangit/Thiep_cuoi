@@ -1,3 +1,4 @@
+import { validMapUrl } from './maps';
 import { env } from 'cloudflare:workers';
 import { getAuthUser } from '@/lib/auth';
 import { verifyOrigin } from '@/lib/auth-core';
@@ -19,6 +20,8 @@ export function validateWedding(x:any):Wedding{
  if(x.photo!==undefined&&x.photo!==''&&!validPhotoPath(x.photo))throw new Error('Ảnh thiệp không hợp lệ.');
  result.orientation=x.orientation??'portrait';result.photoMode=x.photoMode??'fade';result.photo=x.photo??'';
  for(const key of ['photoOpacity','photoX','photoY'] as const){const value=x[key]??(key==='photoOpacity'?70:50);if(typeof value!=='number'||!Number.isFinite(value)||value<0||value>100)throw new Error('Điều chỉnh ảnh không hợp lệ.');result[key]=value;}
+ if(x.mapUrl!==undefined&&(typeof x.mapUrl!=='string'||(x.mapUrl.trim()&&!validMapUrl(x.mapUrl.trim()))))throw new Error('Link bản đồ phải là đường dẫn HTTPS hợp lệ, tối đa 2048 ký tự.');
+ result.mapUrl=x.mapUrl?.trim()??'';
  return result;
 }
 export function fail(e:unknown){if(!(e instanceof Error&&e.message==='AUTH'))console.error(e);return e instanceof Error&&e.message==='AUTH'?json({error:'Vui lòng đăng nhập để lưu thiệp.'},401):json({error:e instanceof Error?e.message:'Có lỗi xảy ra. Vui lòng thử lại.'},400);}

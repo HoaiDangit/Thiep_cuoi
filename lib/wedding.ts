@@ -1,4 +1,4 @@
-export type Wedding = {groom:string;bride:string;date:string;time:string;venue:string;address:string;message:string;template:string;expires:string;orientation?:'portrait'|'landscape';photo?:string;photoMode?:'fade'|'overlay'|'frame';photoOpacity?:number;photoX?:number;photoY?:number};
+export type Wedding = {groom:string;bride:string;date:string;time:string;venue:string;address:string;mapUrl?:string;message:string;template:string;expires:string;orientation?:'portrait'|'landscape';photo?:string;photoMode?:'fade'|'overlay'|'frame';photoOpacity?:number;photoX?:number;photoY?:number};
 export const LINK_LIFETIME_DAYS=40;
 export const LINK_LIFETIME_MS=LINK_LIFETIME_DAYS*24*60*60*1000;
 export function guestExpiry(created=Date.now()){return created+LINK_LIFETIME_MS;}
