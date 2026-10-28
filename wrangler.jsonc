@@ -7,6 +7,12 @@
     "nodejs_compat"
   ],
   "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "beartalk.site",
+      "custom_domain": true
+    }
+  ],
   "assets": {
     "not_found_handling": "none"
   },
