@@ -3,4 +3,4 @@ import { redirect } from 'next/navigation';
 import PasswordForm from '../password-form';
 export const dynamic='force-dynamic';
 export const metadata={title:'Đổi mật khẩu · Lời Hẹn',robots:{index:false,follow:false}};
-export default async function Account(){if(!await getAuthUser())redirect('/login');return <PasswordForm mode="change"/>;}
+export default async function Account(){const user=await getAuthUser();if(!user)redirect('/login');return <PasswordForm mode="change" username={user.username} forceChange={user.mustChangePassword}/>;}

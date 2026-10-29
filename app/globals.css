@@ -45,3 +45,8 @@ body{margin:0;background:var(--background);color:var(--foreground);font-family:v
 
 
 .venue-settings{grid-column:1/-1;border:1px solid var(--border);border-radius:8px;padding:18px;display:grid;gap:16px}.venue-settings legend{padding:0 8px;font-weight:600;color:#315448}.venue-settings{min-width:0}.venue-picker{display:grid;gap:8px}.venue-picker select{width:100%;min-width:0;padding:12px;border:1px solid #d5ddd5;border-radius:7px;background:white;color:#315448;font:inherit}.guest-venue{display:block;font-size:12px;color:#748075;margin-top:4px}
+/* Shared compact controls for guest salutations, account selection and venues. */
+.modal-label select{width:100%;min-width:0;padding:12px;border:1px solid #d5ddd5;border-radius:7px;background:#fff;color:#315448;font:inherit}
+.venue-row{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #dfe5dc;border-radius:8px;background:#fff;min-width:0}.venue-row.selected{border-color:#7f9a83;background:#f5f8f2}.venue-row>svg{flex:none;color:#667b60}.venue-row>div{min-width:0;flex:1}.venue-row strong,.venue-row span{display:block}.venue-row span{font-size:13px;margin-top:4px}.venue-row p{font-size:12px;color:#6c786a;margin:4px 0 0;overflow-wrap:anywhere}.venue-edit{border:0;background:transparent;color:#315448;flex:none;width:40px;height:40px;display:grid;place-items:center;border-radius:7px;cursor:pointer}.venue-edit:hover{background:#31544812}.venue-edit:focus-visible{outline:2px solid #315448}.venue-editor-dialog{max-height:calc(100dvh - 32px);overflow-y:auto}.honorific-picker .field-help{margin:8px 0 12px}.admin-login select{margin-bottom:12px}
+
+.guest-editor-dialog{max-height:calc(100dvh - 32px);overflow-y:auto}

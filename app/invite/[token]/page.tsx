@@ -1,3 +1,4 @@
+import { guestSalutation,type Honorific } from '@/lib/honorifics';
 import { weddingAtVenue } from '@/lib/venues';
 import { weddingMapUrl } from '@/lib/maps';
 import { db } from '@/lib/server';
@@ -8,8 +9,8 @@ export const metadata={title:'Bạn có một lời mời cưới · Lời Hẹn
 export default async function Page({params}:{params:Promise<{token:string}>}){
  await headers();const {token}=await params;
  try{
- const record=await db().prepare('SELECT g.name,g.expires,g.revoked,g.venue_id,w.data FROM guests g JOIN weddings w ON w.id=g.wedding_id WHERE g.token=?').bind(token).first<{name:string;expires:number;revoked:number;venue_id:1|2;data:string}>();
+ const record=await db().prepare('SELECT g.name,g.honorific,g.expires,g.revoked,g.venue_id,w.data FROM guests g JOIN weddings w ON w.id=g.wedding_id WHERE g.token=?').bind(token).first<{name:string;honorific:Honorific;expires:number;revoked:number;venue_id:1|2;data:string}>();
  if(!record||record.revoked||record.expires<=Date.now())return <main className="closed-invite"><div className="brand">Lời Hẹn<span>✦</span></div><h1>Lời mời này đã khép lại</h1><p>Link đã hết hạn, được thu hồi hoặc không tồn tại. Vui lòng liên hệ cô dâu, chú rể để nhận thiệp mới.</p></main>;
- const w=weddingAtVenue(JSON.parse(record.data),record.venue_id??1);return <main className="guest-page"><div className="guest-brand">Lời Hẹn <span>✦</span></div><Invitation wedding={w} guest={record.name}/><div className="guest-details"><p>Thiệp dành riêng cho <strong>{record.name}</strong></p><p>Có thể xem đến {new Date(record.expires).toLocaleDateString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})}</p><a href={weddingMapUrl(w)} target="_blank" rel="noreferrer" className="button primary">Xem đường đến tiệc cưới</a></div></main>;
+ const w=weddingAtVenue(JSON.parse(record.data),record.venue_id??1);return <main className="guest-page"><div className="guest-brand">Lời Hẹn <span>✦</span></div><Invitation wedding={w} guest={record.name} honorific={record.honorific}/><div className="guest-details"><p>Thiệp dành riêng cho <strong>{guestSalutation(record.name,record.honorific)}</strong></p><p>Có thể xem đến {new Date(record.expires).toLocaleDateString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})}</p><a href={weddingMapUrl(w)} target="_blank" rel="noreferrer" className="button primary">Xem đường đến tiệc cưới</a></div></main>;
  }catch(e){console.error(e);return <main className="closed-invite"><h1>Chưa mở được thiệp</h1><p>Vui lòng tải lại trang sau ít phút.</p></main>;}
 }

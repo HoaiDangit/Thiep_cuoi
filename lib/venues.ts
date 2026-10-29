@@ -7,4 +7,4 @@ export function weddingAtVenue(w:Wedding,id:VenueId=w.defaultVenue??1):Wedding{
  if(id===2&&secondVenue)return {...base,...secondVenue,defaultVenue:2};
  return {...base,defaultVenue:1};
 }
-export function venueName(w:Wedding,id:VenueId=1){return `${id===2?'Địa điểm 2':'Địa điểm 1'} · ${weddingAtVenue(w,id).venue}`;}
+export function venueName(w:Wedding,id:VenueId=1){return `${weddingAtVenue(w,id).kind??(id===2?'Nhà gái':'Nhà trai')} · ${weddingAtVenue(w,id).venue}`;}

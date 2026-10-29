@@ -1,13 +1,14 @@
 import { validVenueId } from './venues';
 import { validMapUrl } from './maps';
 import { env } from 'cloudflare:workers';
+import { AuthProblem } from './auth-core';
 import { getAuthUser } from '@/lib/auth';
 import { verifyOrigin } from '@/lib/auth-core';
 import { Wedding, templates, expiryTime } from './wedding';
 import { validPhotoPath } from './photo';
 export function db(){if(!env.DB)throw new Error('Chưa kết nối được nơi lưu thiệp. Vui lòng thử lại.');return env.DB;}
 export function json(data:unknown,status=200){return Response.json(data,{status,headers:{'Cache-Control':'private, no-store'}});}
-export async function owner(){const u=await getAuthUser(); if(!u)throw new Error('AUTH');return u.userId;}
+export async function owner(){const u=await getAuthUser(); if(!u)throw new Error('AUTH');if(u.mustChangePassword)throw new AuthProblem('Vui lòng đặt mật khẩu mới trước khi quản lý thiệp.',403);return u.userId;}
 export const originCheck=verifyOrigin;
 export function validateWedding(x:any):Wedding{
  const limits:Record<string,number>={groom:100,bride:100,venue:200,address:400,message:1500};
@@ -15,6 +16,7 @@ export function validateWedding(x:any):Wedding{
  if(!templates.some(t=>t.id===x.template))throw new Error('Mẫu thiệp không hợp lệ.');
  for(const k of ['date','expires'])if(typeof x[k]!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(x[k])||!Number.isFinite(expiryTime(x[k]))||new Date(`${x[k]}T12:00:00Z`).toISOString().slice(0,10)!==x[k])throw new Error('Ngày không hợp lệ.');
  if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(x.time))throw new Error('Giờ không hợp lệ.');
+ if(x.kind!==undefined&&!['Nhà trai','Nhà gái','Nhà hàng','Khác'].includes(x.kind))throw new Error('Loại địa điểm không hợp lệ.');
  const result={}as Wedding; for(const k of Object.keys({...limits,date:0,expires:0,time:0,template:0})) (result as any)[k]=x[k].trim();
  if(x.orientation!==undefined&&!['portrait','landscape'].includes(x.orientation))throw new Error('Khổ thiệp không hợp lệ.');
  if(x.photoMode!==undefined&&!['fade','overlay','frame'].includes(x.photoMode))throw new Error('Kiểu hòa ảnh không hợp lệ.');
@@ -25,9 +27,10 @@ export function validateWedding(x:any):Wedding{
  result.mapUrl=x.mapUrl?.trim()??'';
  if(x.secondVenue!==undefined){const v=x.secondVenue;if(!v||typeof v.venue!=='string'||!v.venue.trim()||v.venue.trim().length>200||typeof v.address!=='string'||!v.address.trim()||v.address.trim().length>400)throw new Error('Vui lòng điền tên và địa chỉ của địa điểm 2.');if(v.mapUrl!==undefined&&(typeof v.mapUrl!=='string'||(v.mapUrl.trim()&&!validMapUrl(v.mapUrl.trim()))))throw new Error('Link bản đồ địa điểm 2 phải là HTTPS hợp lệ, tối đa 2048 ký tự.');result.secondVenue={venue:v.venue.trim(),address:v.address.trim(),mapUrl:v.mapUrl?.trim()??''};}
  if(x.defaultVenue!==undefined&&!validVenueId(x.defaultVenue))throw new Error('Địa điểm mặc định không hợp lệ.');
- result.defaultVenue=x.defaultVenue??1;
+ result.defaultVenue=x.defaultVenue??1;result.kind=x.kind??'Nhà trai';
+ if(result.secondVenue){if(x.secondVenue.kind!==undefined&&!['Nhà trai','Nhà gái','Nhà hàng','Khác'].includes(x.secondVenue.kind))throw new Error('Loại địa điểm 2 không hợp lệ.');result.secondVenue.kind=x.secondVenue.kind??'Nhà gái';}
  if(result.defaultVenue===2&&!result.secondVenue)throw new Error('Hãy lưu địa điểm 2 trước khi chọn.');
  return result;
 }
-export function fail(e:unknown){if(!(e instanceof Error&&e.message==='AUTH'))console.error(e);return e instanceof Error&&e.message==='AUTH'?json({error:'Vui lòng đăng nhập để lưu thiệp.'},401):json({error:e instanceof Error?e.message:'Có lỗi xảy ra. Vui lòng thử lại.'},400);}
+export function fail(e:unknown){if(e instanceof AuthProblem)return json({error:e.message},e.status);if(!(e instanceof Error&&e.message==='AUTH'))console.error(e);return e instanceof Error&&e.message==='AUTH'?json({error:'Vui lòng đăng nhập để lưu thiệp.'},401):json({error:e instanceof Error?e.message:'Có lỗi xảy ra. Vui lòng thử lại.'},400);}
 export async function ownWedding(user:string){return db().prepare('SELECT * FROM weddings WHERE owner = ?').bind(user).first<{id:string;data:string}>();}
