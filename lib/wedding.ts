@@ -1,11 +1,12 @@
+import type { GuestPresentation } from './guest-presentation';
 import type { Honorific } from './honorifics';
 export type VenueKind='Nhà trai'|'Nhà gái'|'Nhà hàng'|'Khác';
 export type Venue={kind?:VenueKind;venue:string;address:string;mapUrl?:string;mapQr?:{url:string;image:string}};
-export type Wedding = {kind?:VenueKind;groom:string;bride:string;date:string;time:string;venue:string;address:string;mapUrl?:string;mapQr?:Venue['mapQr'];secondVenue?:Venue;defaultVenue?:1|2;message:string;template:string;expires:string;orientation?:'portrait'|'landscape';photo?:string;photoMode?:'fade'|'overlay'|'frame';photoOpacity?:number;photoX?:number;photoY?:number};
+export type Wedding = {kind?:VenueKind;groom:string;bride:string;date:string;time:string;venue:string;address:string;mapUrl?:string;mapQr?:Venue['mapQr'];secondVenue?:Venue;defaultVenue?:1|2;message:string;template:string;expires:string;orientation?:'portrait'|'landscape';photo?:string;photoMode?:'fade'|'overlay'|'frame';photoOpacity?:number;photoScale?:number;photoX?:number;photoY?:number};
 export const LINK_LIFETIME_DAYS=40;
 export const LINK_LIFETIME_MS=LINK_LIFETIME_DAYS*24*60*60*1000;
 export function guestExpiry(created=Date.now()){return created+LINK_LIFETIME_MS;}
-export type Guest = {token:string;name:string;honorific?:Honorific;expires:number;revoked:number;venue_id?:1|2;created?:number};
+export type Guest = {token:string;name:string;honorific?:Honorific;presentation?:GuestPresentation;expires:number;revoked:number;venue_id?:1|2;created?:number};
 export const templates = [
  {id:'garden',name:'Lời hẹn trong vườn',category:'Lãng mạn',color:'#315448',description:'Một khu vườn, một lời hẹn trọn đời.'},
  {id:'classic',name:'Son sắt',category:'Truyền thống',color:'#7e2837',description:'Sắc đỏ của ngày vui, nét chữ trang trọng.'},

@@ -1,0 +1,1 @@
+ALTER TABLE `guests` ADD `presentation` text DEFAULT '{}' NOT NULL;

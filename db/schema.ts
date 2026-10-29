@@ -6,7 +6,7 @@ export const weddings = sqliteTable('weddings', {
  id:text('id').primaryKey(), owner:text('owner').notNull().unique(), data:text('data').notNull(), updated:integer('updated').notNull()
 });
 export const guests = sqliteTable('guests', {
- token:text('token').primaryKey(), weddingId:text('wedding_id').notNull().references(()=>weddings.id), name:text('name').notNull(), honorific:text('honorific').notNull().default(''), venueId:integer('venue_id').notNull().default(1), expires:integer('expires').notNull(), revoked:integer('revoked').notNull().default(0), created:integer('created').notNull()
+ token:text('token').primaryKey(), weddingId:text('wedding_id').notNull().references(()=>weddings.id), name:text('name').notNull(), honorific:text('honorific').notNull().default(''), presentation:text('presentation').notNull().default('{}'), venueId:integer('venue_id').notNull().default(1), expires:integer('expires').notNull(), revoked:integer('revoked').notNull().default(0), created:integer('created').notNull()
 },t=>[index('idx_guests_wedding').on(t.weddingId)]);
 
 export const adminCredentials=sqliteTable('admin_credentials',{id:text('id').primaryKey(),salt:text('salt').notNull(),passwordHash:text('password_hash').notNull(),iterations:integer('iterations').notNull(),updated:integer('updated').notNull(),mustChange:integer('must_change').notNull().default(0),temporary:integer('temporary').notNull().default(0)});

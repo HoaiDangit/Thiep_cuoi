@@ -43,6 +43,13 @@
       "when": 1793236619056,
       "tag": "0005_charming_zzzax",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1793240383753,
+      "tag": "0006_complex_wild_pack",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 import QRCode from 'qrcode';
 import { weddingMapUrl } from './maps';
 import type { Wedding,Venue } from './wedding';
-async function savedQr(venue:Venue,previous?:Venue){
+export async function savedQr(venue:Venue,previous?:Venue){
  const url=weddingMapUrl(venue);
  if(previous?.mapQr?.url===url)return previous.mapQr;
  const svg=await QRCode.toString(url,{type:'svg',margin:4,errorCorrectionLevel:'M',width:384});

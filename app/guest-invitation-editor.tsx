@@ -1,0 +1,51 @@
+'use client';
+import { useRef,useState } from 'react';
+import { Loader2,Move,RotateCcw,ZoomIn } from 'lucide-react';
+import { Dialog,DialogContent,DialogTitle,DialogDescription } from '@/components/ui/dialog';
+import { applyGuestPresentation,readGuestPresentation,validateGuestPresentation,type GuestPresentation,type InvitationTextField } from '@/lib/guest-presentation';
+import type { Guest,Wedding } from '@/lib/wedding';
+import type { Honorific } from '@/lib/honorifics';
+import { weddingAtVenue,type VenueId } from '@/lib/venues';
+import HonorificPicker from './honorific-picker';
+import { VenuePicker } from './venue-settings';
+import Invitation from './invitation';
+import VenueQr from './venue-qr';
+export type GuestEdit={name:string;honorific:Honorific;venueId:VenueId;presentation:GuestPresentation};
+function withoutCache(guest:Guest){const {mapQr,...fields}=readGuestPresentation(guest.presentation);return fields;}
+const clamp=(value:number)=>Math.max(0,Math.min(100,Math.round(value*100)/100));
+export default function GuestInvitationEditor({wedding,guest,onClose,onSave}:{wedding:Wedding;guest:Guest;onClose:()=>void;onSave:(edit:GuestEdit)=>Promise<void>}){
+ const [name,setName]=useState(guest.name),[honorific,setHonorific]=useState<Honorific>(guest.honorific??''),[venueId,setVenueId]=useState<VenueId>(guest.venue_id??1),[presentation,setPresentation]=useState<GuestPresentation>(()=>withoutCache(guest)),[busy,setBusy]=useState(false),[error,setError]=useState(''),[viewing,setViewing]=useState(false),[active,setActive]=useState<InvitationTextField>('name'),[dragging,setDragging]=useState(false),[panEnabled,setPanEnabled]=useState(false);
+ const refs=useRef<Partial<Record<InvitationTextField,HTMLInputElement|HTMLTextAreaElement>>>({});
+ const drag=useRef<{id:number;x:number;y:number;px:number;py:number;width:number;height:number}|null>(null);
+ const base=weddingAtVenue(wedding,venueId),shown=applyGuestPresentation(base,presentation),ownMessage=presentation.message!==undefined,ownDate=presentation.date!==undefined||presentation.time!==undefined,ownLocation=presentation.venue!==undefined||presentation.address!==undefined||presentation.mapUrl!==undefined;
+ const hasPhoto=!!shown.photo||!['classic','minimal','night'].includes(shown.template);
+ function clear(keys:(keyof GuestPresentation)[]){setPresentation(p=>{const result={...p};for(const key of keys)delete result[key];return result;});}
+ function editText(field:InvitationTextField){setActive(field);if(field==='message'&&!ownMessage)setPresentation(p=>({...p,message:base.message}));if((field==='date'||field==='time')&&!ownDate)setPresentation(p=>({...p,date:base.date,time:base.time}));if((field==='venue'||field==='address')&&!ownLocation)setPresentation(p=>({...p,venue:base.venue,address:base.address,mapUrl:base.mapUrl??''}));requestAnimationFrame(()=>{const input=refs.current[field];input?.focus();if(input?.tagName==='TEXTAREA'||input?.type==='text')input.select();});}
+ function startDrag(e:React.PointerEvent<HTMLDivElement>){
+  if(viewing||busy||(e.pointerType==='touch'&&!panEnabled)||e.button!==0||(e.target as HTMLElement).closest('button,a,input,textarea,select'))return;
+  const images=Array.from(e.currentTarget.querySelectorAll<HTMLImageElement>('.invite-photo img,.ref-invite img'));
+  const image=images.find(image=>{const r=image.parentElement!.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;});if(!image)return;
+  const rect=image.parentElement!.getBoundingClientRect();drag.current={id:e.pointerId,x:e.clientX,y:e.clientY,px:shown.photoX??50,py:shown.photoY??50,width:rect.width,height:rect.height};e.currentTarget.setPointerCapture(e.pointerId);setDragging(true);e.preventDefault();
+ }
+ function moveDrag(e:React.PointerEvent<HTMLDivElement>){const d=drag.current;if(!d||d.id!==e.pointerId)return;setPresentation(p=>({...p,photoX:clamp(d.px-(e.clientX-d.x)/d.width*100),photoY:clamp(d.py-(e.clientY-d.y)/d.height*100)}));}
+ function endDrag(e:React.PointerEvent<HTMLDivElement>){if(drag.current?.id!==e.pointerId)return;drag.current=null;setDragging(false);if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);}
+ async function save(){setError('');if(!name.trim()||name.trim().length>120){setError('Tên khách cần từ 1 đến 120 ký tự.');return;}try{const valid=validateGuestPresentation(presentation);setBusy(true);await onSave({name:name.trim(),honorific,venueId,presentation:valid});}catch(e){setError((e as Error).message||'Chưa lưu được thiệp riêng.');}finally{setBusy(false);}}
+ return <Dialog open onOpenChange={open=>{if(!open&&!busy)onClose();}}><DialogContent className="guest-design-dialog"><DialogTitle>Chỉnh sửa thiệp của {guest.name}</DialogTitle><DialogDescription>Chỉnh riêng cho khách này. Link thiệp và ngày hết hạn được giữ nguyên.</DialogDescription><div className="guest-design-layout">
+  <section className="guest-design-preview"><div className="guest-design-preview-bar"><span>{viewing?'Thiệp khách sẽ xem':'Bấm chữ để sửa · kéo ảnh để di chuyển'}</span><button type="button" className="guest-pan-toggle" disabled={viewing||!hasPhoto} aria-pressed={panEnabled} onClick={()=>setPanEnabled(v=>!v)}><Move size={14}/>Kéo ảnh</button><button type="button" className="summary-preview" aria-pressed={viewing} onClick={()=>setViewing(v=>!v)}>{viewing?'Quay lại chỉnh sửa':'Xem như khách mời'}</button></div><div className={'guest-design-canvas '+(viewing?'viewing':'editing')+(!viewing&&panEnabled?' photo-panning':'')+(dragging?' dragging':'')} onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={endDrag} onDragStart={e=>e.preventDefault()}><Invitation wedding={shown} guest={name||'Tên khách mời'} honorific={honorific} onEditText={viewing||busy?undefined:editText}/></div></section>
+  <div className="guest-design-controls"><fieldset disabled={busy}>
+   <HonorificPicker single value={honorific} onChange={setHonorific} disabled={busy}/>
+   <label className={'modal-label '+(active==='name'?'field-active':'')}>Tên trên thiệp<input ref={el=>{if(el)refs.current.name=el;}} maxLength={120} value={name} onChange={e=>setName(e.target.value)}/></label>
+   <label className="guest-inherit"><input type="checkbox" checked={ownMessage} onChange={e=>e.target.checked?setPresentation(p=>({...p,message:base.message})):clear(['message'])}/>Dùng lời nhắn riêng</label>
+   {ownMessage&&<label className={'modal-label '+(active==='message'?'field-active':'')}>Lời nhắn riêng<textarea ref={el=>{if(el)refs.current.message=el;}} maxLength={1500} rows={4} value={presentation.message??''} onChange={e=>setPresentation(p=>({...p,message:e.target.value}))}/></label>}
+   <label className="guest-inherit"><input type="checkbox" checked={ownDate} onChange={e=>e.target.checked?setPresentation(p=>({...p,date:base.date,time:base.time})):clear(['date','time'])}/>Dùng ngày giờ riêng</label>
+   {ownDate&&<div className="guest-date-fields"><label className="modal-label">Ngày dự tiệc<input ref={el=>{if(el)refs.current.date=el;}} type="date" value={shown.date} onChange={e=>setPresentation(p=>({...p,date:e.target.value}))}/></label><label className="modal-label">Giờ dự tiệc<input ref={el=>{if(el)refs.current.time=el;}} type="time" value={shown.time} onChange={e=>setPresentation(p=>({...p,time:e.target.value}))}/></label></div>}
+   <VenuePicker w={wedding} value={venueId} onChange={id=>{setVenueId(id);clear(['venue','address','mapUrl','mapQr']);}} disabled={busy}/>
+   <label className="guest-inherit"><input type="checkbox" checked={ownLocation} onChange={e=>e.target.checked?setPresentation(p=>({...p,venue:base.venue,address:base.address,mapUrl:base.mapUrl??''})):clear(['venue','address','mapUrl','mapQr'])}/>Dùng địa điểm riêng</label>
+   {ownLocation&&<><label className="modal-label">Tên địa điểm riêng<input ref={el=>{if(el)refs.current.venue=el;}} maxLength={200} value={shown.venue} onChange={e=>setPresentation(p=>({...p,venue:e.target.value,mapUrl:''}))}/></label><label className="modal-label">Địa chỉ riêng<input ref={el=>{if(el)refs.current.address=el;}} maxLength={400} value={shown.address} onChange={e=>setPresentation(p=>({...p,address:e.target.value,mapUrl:''}))}/></label><label className="modal-label">Link bản đồ riêng (không bắt buộc)<input type="url" maxLength={2048} value={presentation.mapUrl??''} placeholder="https://maps.app.goo.gl/…" onChange={e=>setPresentation(p=>({...p,mapUrl:e.target.value}))}/></label></>}
+   <VenueQr wedding={shown} settings/>
+   <div className="guest-photo-heading"><ZoomIn size={18}/><strong>Kích thước & vị trí ảnh</strong></div>
+   {hasPhoto?<><label className="modal-label">Kích thước ảnh <span>{shown.photoScale??100}%</span><input type="range" aria-label="Kích thước ảnh trong thiệp riêng" min="100" max="250" step="5" value={shown.photoScale??100} onChange={e=>setPresentation(p=>({...p,photoScale:Number(e.target.value)}))}/></label><div className="guest-photo-sliders">{(['photoX','photoY'] as const).map((key,index)=><label className="modal-label" key={key}>{index===0?'Vị trí ngang':'Vị trí dọc'}<input type="range" min="0" max="100" step="1" value={shown[key]??50} onChange={e=>setPresentation(p=>({...p,[key]:Number(e.target.value)}))}/></label>)}</div><p className="field-help"><Move size={14}/>Kéo trực tiếp ảnh hoặc dùng thanh điều chỉnh. Trên điện thoại, bật “Kéo ảnh” trước khi kéo.</p><button type="button" className="button outline" onClick={()=>clear(['photoScale','photoX','photoY'])}><RotateCcw size={15}/>Khôi phục ảnh gốc</button></>:<p className="field-help">Mẫu hiện tại không có vùng ảnh. Bạn có thể chọn mẫu có ảnh ở bước Chọn mẫu.</p>}
+   <button type="button" className="summary-preview" onClick={()=>setPresentation({})}>Dùng lại toàn bộ thông tin thiệp chung</button>
+  </fieldset></div>
+ </div>{error&&<p className="notice error" role="alert">{error}</p>}<div className="guest-design-actions"><span>Thay đổi sẽ được áp dụng khi bạn bấm Lưu.</span><button type="button" className="button outline" disabled={busy} onClick={onClose}>Hủy</button><button type="button" className="button primary" disabled={busy} onClick={()=>void save()}>{busy&&<Loader2 size={16} className="spin"/>}{busy?'Đang lưu…':'Lưu thiệp riêng'}</button></div></DialogContent></Dialog>;
+}
