@@ -1,9 +1,11 @@
+import ReferenceInvitation,{referenceTemplates} from './reference-invitation';
 import { guestSalutation,guestWording,invitationMessage,type Honorific } from '@/lib/honorifics';
 import { appPath } from '@/lib/paths';
 import VenueQr from './venue-qr';
 import { Wedding,prettyDate } from '@/lib/wedding';
 import type { CSSProperties } from 'react';
 export default function Invitation({wedding:w,guest='Bạn và người thương',compact=false,honorific=''}:{wedding:Wedding;guest?:string;compact?:boolean;honorific?:Honorific}){
+ if(referenceTemplates.includes(w.template))return <ReferenceInvitation wedding={w} guest={guest} compact={compact} honorific={honorific}/>;
  const wording=guestWording(honorific);
  const blended=['mist','sunset','ivory','botanical','velvet','moonlight','rose','film'].includes(w.template)||!!w.photo;
  const photo=blended||['garden','editorial','peach'].includes(w.template);

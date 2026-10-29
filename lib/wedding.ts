@@ -20,7 +20,14 @@ export const templates = [
  {id:'velvet',name:'Nhung đỏ',category:'Truyền thống',color:'#6d293c',description:'Chân dung hòa vào sắc đỏ trầm.'},
  {id:'moonlight',name:'Hẹn dưới trăng',category:'Hiện đại',color:'#32415f',description:'Ánh trăng và ảnh cưới trên nền đêm.'},
  {id:'rose',name:'Hồng dịu dàng',category:'Lãng mạn',color:'#bd7d8c',description:'Sắc hồng phấn ôm lấy khoảnh khắc.'},
- {id:'film',name:'Thước phim đôi mình',category:'Hiện đại',color:'#665744',description:'Khung ảnh mang nét ký ức điện ảnh.'}
+ {id:'film',name:'Thước phim đôi mình',category:'Hiện đại',color:'#665744',description:'Khung ảnh mang nét ký ức điện ảnh.'},
+ {id:'vows',isNew:true,name:'Lời thề dưới tán cây',category:'Lãng mạn',color:'#354d38',description:'Ảnh tràn khung, ngày cưới lớn và lời hẹn giữa khu vườn.'},
+ {id:'tide',isNew:true,name:'Hẹn cùng biển xanh',category:'Hiện đại',color:'#779aaf',description:'Sắc xanh dịu, ảnh cưới rộng và nét chữ thanh thoát.'},
+ {id:'duet',isNew:true,name:'Hai nửa một lời hẹn',category:'Tối giản',color:'#c8bba6',description:'Ảnh và lời mời chia đôi trên nền giấy trắng tinh giản.'},
+ {id:'arch',isNew:true,name:'Dưới vòm yêu thương',category:'Lãng mạn',color:'#b99a74',description:'Khung ảnh vòm, giấy màu kem và chi tiết ánh vàng.'},
+ {id:'scarlet',isNew:true,name:'Duyên son ngày chung đôi',category:'Truyền thống',color:'#842637',description:'Viền đỏ son, dải ảnh kỷ niệm và lời mời trang trọng.'},
+ {id:'cinema',isNew:true,name:'Bộ phim mang tên chúng mình',category:'Hiện đại',color:'#5b463a',description:'Tấm vé ngày cưới với khung phim và sắc nâu ấm.'}
+
 ];
 export const sample:Wedding={groom:'Minh Anh',bride:'Ngọc Linh',date:'2026-12-20',time:'18:00',venue:'The Garden · Sảnh Lavender',address:'12 Nguyễn Văn Bảo, Gò Vấp, TP. Hồ Chí Minh',message:'Một hành trình mới bắt đầu. Chúng mình rất mong được cùng bạn chia sẻ niềm vui trong ngày đặc biệt này.',template:'garden',expires:'2026-12-27'};
 export function prettyDate(date:string){return /^\d{4}-\d{2}-\d{2}$/.test(date)?date.split('-').reverse().join('.'):'Chưa chọn ngày';}
