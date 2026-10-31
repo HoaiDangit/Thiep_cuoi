@@ -22,12 +22,17 @@ export const templates = [
  {id:'moonlight',name:'Hẹn dưới trăng',category:'Hiện đại',color:'#32415f',description:'Ánh trăng và ảnh cưới trên nền đêm.'},
  {id:'rose',name:'Hồng dịu dàng',category:'Lãng mạn',color:'#bd7d8c',description:'Sắc hồng phấn ôm lấy khoảnh khắc.'},
  {id:'film',name:'Thước phim đôi mình',category:'Hiện đại',color:'#665744',description:'Khung ảnh mang nét ký ức điện ảnh.'},
- {id:'vows',isNew:true,name:'Lời thề dưới tán cây',category:'Lãng mạn',color:'#354d38',description:'Ảnh tràn khung, ngày cưới lớn và lời hẹn giữa khu vườn.'},
- {id:'tide',isNew:true,name:'Hẹn cùng biển xanh',category:'Hiện đại',color:'#779aaf',description:'Sắc xanh dịu, ảnh cưới rộng và nét chữ thanh thoát.'},
- {id:'duet',isNew:true,name:'Hai nửa một lời hẹn',category:'Tối giản',color:'#c8bba6',description:'Ảnh và lời mời chia đôi trên nền giấy trắng tinh giản.'},
- {id:'arch',isNew:true,name:'Dưới vòm yêu thương',category:'Lãng mạn',color:'#b99a74',description:'Khung ảnh vòm, giấy màu kem và chi tiết ánh vàng.'},
- {id:'scarlet',isNew:true,name:'Duyên son ngày chung đôi',category:'Truyền thống',color:'#842637',description:'Viền đỏ son, dải ảnh kỷ niệm và lời mời trang trọng.'},
- {id:'cinema',isNew:true,name:'Bộ phim mang tên chúng mình',category:'Hiện đại',color:'#5b463a',description:'Tấm vé ngày cưới với khung phim và sắc nâu ấm.'}
+ {id:'vows',name:'Lời thề dưới tán cây',category:'Lãng mạn',color:'#354d38',description:'Ảnh tràn khung, ngày cưới lớn và lời hẹn giữa khu vườn.'},
+ {id:'tide',name:'Hẹn cùng biển xanh',category:'Hiện đại',color:'#779aaf',description:'Sắc xanh dịu, ảnh cưới rộng và nét chữ thanh thoát.'},
+ {id:'duet',name:'Hai nửa một lời hẹn',category:'Tối giản',color:'#c8bba6',description:'Ảnh và lời mời chia đôi trên nền giấy trắng tinh giản.'},
+ {id:'arch',name:'Dưới vòm yêu thương',category:'Lãng mạn',color:'#b99a74',description:'Khung ảnh vòm, giấy màu kem và chi tiết ánh vàng.'},
+ {id:'scarlet',name:'Duyên son ngày chung đôi',category:'Truyền thống',color:'#842637',description:'Viền đỏ son, dải ảnh kỷ niệm và lời mời trang trọng.'},
+ {id:'cinema',name:'Bộ phim mang tên chúng mình',category:'Hiện đại',color:'#5b463a',description:'Tấm vé ngày cưới với khung phim và sắc nâu ấm.'},
+ {id:'window',isNew:true,name:'Nắng bên ô cửa',category:'Tối giản',color:'#9ca88a',description:'Vòm cửa ngập nắng, nền giấy ngà và những nhành lá xanh.'},
+ {id:'jade',isNew:true,name:'Ngọc lục ngày vu quy',category:'Truyền thống',color:'#173e32',description:'Xanh ngọc trầm, chữ hỷ và khung ảnh vòm thanh lịch.'},
+ {id:'letter',isNew:true,name:'Thư gửi ngày chung đôi',category:'Lãng mạn',color:'#833b4b',description:'Đôi ảnh Polaroid, phong thư và dấu sáp đỏ mận.'},
+ {id:'lily',isNew:true,name:'Lời yêu trên giấy hoa',category:'Lãng mạn',color:'#71858d',description:'Nét hoa trắng xanh, ảnh cưới viền giấy và lời mời dịu dàng.'},
+ {id:'journal',isNew:true,name:'Nhật ký đôi mình',category:'Hiện đại',color:'#ad8b6e',description:'Album ảnh màu latte, lịch ngày cưới và từng trang kỷ niệm.'}
 
 ];
 export const sample:Wedding={groom:'Minh Anh',bride:'Ngọc Linh',date:'2026-12-20',time:'18:00',venue:'The Garden · Sảnh Lavender',address:'12 Nguyễn Văn Bảo, Gò Vấp, TP. Hồ Chí Minh',message:'Một hành trình mới bắt đầu. Chúng mình rất mong được cùng bạn chia sẻ niềm vui trong ngày đặc biệt này.',template:'garden',expires:'2026-12-27'};
