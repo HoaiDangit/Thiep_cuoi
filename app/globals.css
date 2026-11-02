@@ -100,3 +100,5 @@ body{margin:0;background:var(--background);color:var(--foreground);font-family:v
 
 .guest-pan-toggle{display:inline-flex;align-items:center;gap:5px;border:1px solid #bbc9b3;border-radius:5px;background:transparent;color:#45613e;padding:4px 7px!important;font:12px var(--font-ui)}.guest-pan-toggle[aria-pressed=true]{background:#315448;color:#fff}.guest-design-preview-bar>span{flex:1}
 .guest-design-preview-bar>.summary-preview{width:auto;flex:0 0 auto}.guest-design-preview-bar>.guest-pan-toggle{flex:0 0 auto}.guest-design-preview-bar>span{min-width:160px}
+
+.guest-delete-confirm{background:#8f3442!important;color:#fff!important}.guest-delete-confirm:hover{background:#742735!important}

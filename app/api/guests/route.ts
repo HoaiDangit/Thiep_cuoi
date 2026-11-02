@@ -10,6 +10,16 @@ export async function GET(){try{
  const guests=await db().prepare('SELECT token,name,honorific,presentation,expires,revoked,created,venue_id FROM guests WHERE wedding_id=? ORDER BY created DESC').bind(wedding.id).all();
  return json({guests:guests.results.map(guestWithPresentation)});
 }catch(e){return fail(e);}}
+export async function DELETE(r:Request){try{
+ originCheck(r);const wedding=await ownWedding(await owner());if(!wedding)return json({error:'Không tìm thấy thiệp.'},404);
+ const input:any=await r.json();if(typeof input?.token!=='string'||!/^[a-f0-9]{64}$/.test(input.token))throw new Error('Link không hợp lệ.');
+ const guest=await db().prepare('SELECT revoked FROM guests WHERE token=? AND wedding_id=?').bind(input.token,wedding.id).first<{revoked:number}>();
+ if(!guest)return json({error:'Không tìm thấy khách mời.'},404);
+ if(!guest.revoked)return json({error:'Chỉ có thể xóa thiệp đã thu hồi. Hãy thu hồi link trước.'},409);
+ const result=await db().prepare('DELETE FROM guests WHERE token=? AND wedding_id=? AND revoked=1').bind(input.token,wedding.id).run();
+ if(!result.meta.changes)return json({error:'Thiệp đã thay đổi. Vui lòng tải lại danh sách.'},409);
+ return json({deleted:true,token:input.token});
+}catch(e){return fail(e);}}
 export async function POST(r:Request){try{
  originCheck(r);const wedding=await ownWedding(await owner());if(!wedding)throw new Error('Hãy lưu thông tin thiệp trước.');
  const input:any=await r.json();
