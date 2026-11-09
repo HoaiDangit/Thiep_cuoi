@@ -19,4 +19,5 @@ export function readGuestPresentation(value:unknown):GuestPresentation{
  try{const {mapQr,...fields}=typeof value==='string'?JSON.parse(value):value??{};const result=validateGuestPresentation(fields);if(mapQr&&typeof mapQr.url==='string'&&typeof mapQr.image==='string'&&/^data:image\/svg\+xml;base64,[A-Za-z0-9+/=]+$/.test(mapQr.image))result.mapQr=mapQr;return result;}catch{return {};}
 }
 export function applyGuestPresentation(wedding:Wedding,presentation:GuestPresentation={}):Wedding{return {...wedding,...presentation,mapUrl:presentation.mapUrl??(presentation.venue!==undefined||presentation.address!==undefined?'':wedding.mapUrl)};}
-export function guestWithPresentation<T extends {presentation?:unknown}>(guest:T){return {...guest,presentation:readGuestPresentation(guest.presentation)};}
+export function readGuestSnapshot(value:unknown):Wedding|undefined{try{const w=typeof value==='string'?JSON.parse(value):value;if(!w||typeof w!=='object'||Array.isArray(w)||typeof w.template!=='string'||typeof w.groom!=='string'||typeof w.bride!=='string'||typeof w.date!=='string')return undefined;return w as Wedding;}catch{return undefined;}}
+export function guestWithPresentation<T extends {presentation?:unknown;snapshot?:unknown}>(guest:T){return {...guest,presentation:readGuestPresentation(guest.presentation),snapshot:readGuestSnapshot(guest.snapshot)};}

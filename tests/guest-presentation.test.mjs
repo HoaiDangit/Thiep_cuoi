@@ -5,6 +5,14 @@ import {readFileSync} from 'node:fs';
 const source=ts.transpileModule(readFileSync(new URL('../lib/guest-presentation.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
 const p=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
 const wedding={groom:'Minh Anh',bride:'Ngọc Linh',date:'2026-12-20',time:'18:00',venue:'Nhà hàng chung',address:'Địa chỉ chung',mapUrl:'https://maps.app.goo.gl/original',message:'Lời mời chung',photoX:50,photoY:50};
+test('saved guest snapshots retain their original wedding when shared data changes',()=>{
+ const original={...wedding,template:'garden',photo:'/wedding.png',orientation:'portrait'};
+ const guest=p.guestWithPresentation({snapshot:JSON.stringify(original),presentation:JSON.stringify({message:'Lời nhắn riêng',photoScale:150})});
+ const shared={...original,template:'merlot',date:'2027-01-01',photo:'/new.png'};
+ const shown=p.applyGuestPresentation(guest.snapshot,guest.presentation);
+ assert.equal(shown.template,'garden');assert.equal(shown.date,'2026-12-20');assert.equal(shown.photo,'/wedding.png');assert.equal(shown.message,'Lời nhắn riêng');assert.equal(shown.photoScale,150);assert.equal(shared.template,'merlot');assert.equal(guest.snapshot.message,wedding.message);
+ assert.equal(p.readGuestSnapshot('bad json'),undefined);assert.equal(p.readGuestSnapshot({template:'garden'}),undefined);
+});
 test('guest overrides are bounded, plain text and cannot change wedding ownership or expiration',()=>{
  const custom=p.validateGuestPresentation({message:'  Lời nhắn riêng  ',date:'2028-02-29',time:'11:30',venue:'Sảnh riêng',address:'Địa chỉ riêng',mapUrl:'https://maps.app.goo.gl/new',photoScale:175,photoX:25,photoY:80});
  assert.equal(custom.message,'Lời nhắn riêng');assert.equal(custom.photoScale,175);
